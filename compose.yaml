@@ -1,0 +1,98 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lumen-lens-postgres
+    environment:
+      POSTGRES_DB: lumen_lens
+      POSTGRES_USER: lumen_lens
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lumen_lens -d lumen_lens"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lumen-lens-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: lumen-lens-keycloak
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-changeme}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/lumen_lens
+      KC_DB_USERNAME: lumen_lens
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - lumen-lens-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: lumen-lens-backend
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://lumen_lens:${POSTGRES_PASSWORD:-changeme}@postgres:5432/lumen_lens
+      - OIDC_ENABLED=true
+      - OIDC_ISSUER_URL=http://keycloak:8080/realms/lumen-lens
+      - OIDC_CLIENT_ID=lumen-lens-backend
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET:-}
+      - OIDC_AUDIENCE=lumen-lens-api
+      - CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173"]
+      - DEMO_MODE=false
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health', timeout=5).raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - lumen-lens-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: lumen-lens-frontend
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5173/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - lumen-lens-network
+
+volumes:
+  postgres_data:
+
+networks:
+  lumen-lens-network:
+    driver: bridge
