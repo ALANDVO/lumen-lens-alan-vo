@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "lumen-lens-alan-vo",
+  "owner": "ALANDVO",
+  "email": "alanvo@gmail.com",
+  "domain": "AI/ML developer tools",
+  "summary": "Work in progress: lumen-lens-alan-vo",
+  "workflows": [
+    "Create and manage e2e sessions programmatically from Playwright Test, Vitest, or Jest",
+    "Real-time step progress feed with artifacts (screenshots, DOM, logs)",
+    "Role-based access control via Keycloak OIDC with SAML identity brokering support"
+  ],
+  "auth": "oidc-keycloak-saml-broker",
+  "llm_providers": [
+    "openai-compatible",
+    "anthropic",
+    "gemini",
+    "ollama"
+  ],
+  "status": "work-in-progress"
+}
