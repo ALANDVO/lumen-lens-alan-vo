@@ -26,7 +26,7 @@ Tests: `backend/tests/test_health.py`, `frontend/src/App.test.tsx`
 
 ### session-management-api — E2E Session Management API (openSession/close/steps)
 
-Status: in_progress
+Status: done
 
 Acceptance:
 - POST /api/v1/sessions creates a new e2e session with config, target, onStep callback

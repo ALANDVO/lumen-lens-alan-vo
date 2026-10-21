@@ -53,9 +53,11 @@ class SecretPattern:
 DEFAULT_SECRET_PATTERNS: List[SecretPattern] = [
     SecretPattern(name="api_key", pattern=r"(?i)(api[_-]?key|apikey)['\"]?\s*[:=]\s*['\"]?([a-zA-Z0-9_\-]{20,})"),
     SecretPattern(name="token", pattern=r"(?i)(token|access[_-]?token|bearer)['\"]?\s*[:=]\s*['\"]?([a-zA-Z0-9_\-\.=]{20,})"),
+    SecretPattern(name="bearer_token", pattern=r"(?i)Authorization:\s*Bearer\s+([a-zA-Z0-9_\-\.=]{20,})"),
     SecretPattern(name="password", pattern=r"(?i)(password|passwd|pwd)['\"]?\s*[:=]\s*['\"]?([^\s'\"]{8,})"),
     SecretPattern(name="secret", pattern=r"(?i)(secret|client[_-]?secret)['\"]?\s*[:=]\s*['\"]?([a-zA-Z0-9_\-]{16,})"),
     SecretPattern(name="private_key", pattern=r"-----BEGIN (RSA |EC |DSA )?PRIVATE KEY-----"),
+    SecretPattern(name="private_key_generic", pattern=r"-----BEGIN PRIVATE KEY-----"),
     SecretPattern(name="aws_key", pattern=r"(?i)(aws[_-]?(access[_-]?key|secret[_-]?key))['\"]?\s*[:=]\s*['\"]?([A-Z0-9]{20,})"),
 ]
 

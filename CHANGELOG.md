@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.0.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
@@ -32,13 +36,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2024-10-21
+
+### Added
+- SessionManager service with engine lifecycle management
+- Fixture graph initialization (agent, app, screen, device)
+- Async context manager pattern for session lifecycle (`async with session_manager.session(config)`)
+- Engine preparation for Playwright and Appium (skipped in test/CI environments)
+- Device lease management for mobile targets (Android/iOS)
+- Step callback registration for real-time SSE updates
+- Comprehensive test coverage: 31 backend tests (12 existing + 19 new)
+- Secret redaction for API keys, bearer tokens, passwords, private keys, AWS keys
+
+### Changed
+- Session API endpoints now use SessionManager for engine/fixture coordination
+- Session creation initializes fixture graph with engine-specific setup
+- Session close cleans up all engine processes, fixture graphs, and leases
+
+### Fixed
+- Secret redaction now handles Authorization: Bearer tokens and generic PRIVATE KEY blocks
+
+---
+
 ## [Unreleased]
 
 ### Planned
 - SQLite/SQLAlchemy persistence layer for sessions and steps
-- Server-Sent Events for real-time step updates
+- Server-Sent Events for real-time step updates (frontend integration)
 - Artifact storage (screenshots, videos, DOM snapshots)
-- Engine integration (Playwright, Appium)
-- Fixture graph (agent, app, screen, device)
+- Engine integration (Playwright, Appium) for actual test execution
 - OpenSession API on e2e/runner subpath
-- Comprehensive test coverage (12+ backend, 3+ frontend tests)
+- Frontend Session Dashboard with real-time step feed and artifact viewer
