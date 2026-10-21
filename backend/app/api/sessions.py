@@ -15,8 +15,8 @@ from app.models.session import (
     TargetPlatform,
     EngineType,
     get_session_store,
-    session_context,
 )
+from app.services.session_manager import get_session_manager
 
 router = APIRouter()
 
@@ -64,10 +64,8 @@ async def create_session(
     session_data: SessionCreate,
     user: User = Depends(require_role(["operator", "admin"])),
 ) -> SessionResponse:
-    store = get_session_store()
-    session = await store.create(session_data.config)
-    session.mark_running()
-    await store.update(session)
+    manager = get_session_manager()
+    session = await manager.create_session(session_data.config)
     return SessionResponse.from_session(session)
 
 
@@ -120,20 +118,13 @@ async def close_session(
     session_id: str,
     user: User = Depends(require_role(["operator", "admin"])),
 ) -> dict:
-    store = get_session_store()
-    session = await store.get(session_id)
-    if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    manager = get_session_manager()
+    try:
+        session = await manager.close_session(session_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
-    if session.status in (SessionStatus.COMPLETED, SessionStatus.FAILED, SessionStatus.CLOSED):
-        return {"id": session_id, "status": session.status.value, "message": "Session already closed"}
-
-    session.mark_closing()
-    await store.update(session)
-    session.mark_closed()
-    await store.update(session)
-
-    return {"id": session_id, "status": "closed", "message": "Session closed successfully"}
+    return {"id": session_id, "status": session.status.value, "message": "Session closed successfully"}
 
 
 @router.post("/{session_id}/steps", response_model=StepRecord, status_code=status.HTTP_201_CREATED)
@@ -142,16 +133,13 @@ async def add_step(
     step_data: StepCreate,
     user: User = Depends(require_role(["operator", "admin"])),
 ) -> StepRecord:
-    store = get_session_store()
-    session = await store.get(session_id)
-    if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-
-    if session.status not in (SessionStatus.RUNNING, SessionStatus.INITIALIZING, SessionStatus.PREPARING):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session not active")
-
-    step = session.add_step(step_data.action)
-    await store.update(session)
+    manager = get_session_manager()
+    try:
+        step = await manager.add_step(session_id, step_data.action)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return step
 
 
@@ -162,31 +150,19 @@ async def update_step(
     step_update: StepUpdate,
     user: User = Depends(require_role(["operator", "admin"])),
 ) -> StepRecord:
-    store = get_session_store()
-    session = await store.get(session_id)
-    if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-
-    step = session.get_step(step_id)
-    if not step:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Step not found")
-
-    if step_update.status == StepStatus.RUNNING:
-        step.mark_running()
-    elif step_update.status == StepStatus.COMPLETED:
-        step.mark_completed(step_update.artifacts)
-    elif step_update.status == StepStatus.FAILED:
-        step.mark_failed(step_update.error or "Step failed")
-    else:
-        step.status = step_update.status
-        if step_update.status in (StepStatus.COMPLETED, StepStatus.FAILED):
-            step.completed_at = datetime.now(timezone.utc)
-        if step_update.artifacts:
-            step.artifacts = step_update.artifacts
-        if step_update.error:
-            step.error = step_update.error
-
-    await store.update(session)
+    manager = get_session_manager()
+    try:
+        step = await manager.update_step(
+            session_id,
+            step_id,
+            step_update.status,
+            step_update.artifacts,
+            step_update.error,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return step
 
 
