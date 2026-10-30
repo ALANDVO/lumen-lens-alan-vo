@@ -41,9 +41,9 @@ function AppContent() {
       if (!res.ok) throw new Error('Failed to fetch sessions')
       setSessions(await res.json())
     } catch (e) {
-      if (error) setError(e instanceof Error ? e.message : 'Failed to fetch sessions')
+      setError(e instanceof Error ? e.message : 'Failed to fetch sessions')
     }
-  }, [error])
+  }, [])
 
   useEffect(() => {
     const init = async () => {

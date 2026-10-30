@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.2.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
+### Fixed
+- Fixed error-swallowing bug in frontend `fetchSessions`: errors were silently discarded on first load when no prior error existed (`if (error)` guard removed)
+- Fixed stale `error` dependency in `fetchSessions` `useCallback` causing unnecessary re-renders
+
 ## 1.1.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
