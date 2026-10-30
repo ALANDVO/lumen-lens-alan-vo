@@ -39,7 +39,7 @@ describe('App', () => {
   })
 
   it('shows error when health check fails', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Connection refused'))
+    mockFetch.mockRejectedValue(new Error('Connection refused'))
 
     render(<App />)
 
