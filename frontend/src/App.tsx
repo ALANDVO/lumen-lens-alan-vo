@@ -2,16 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { SessionList } from './components/SessionList'
 import { CreateSessionModal } from './components/CreateSessionModal'
 import { ToastContainer, useToast, ToastProvider } from './components/Toast'
-import type { Session, SessionConfig } from './api/types'
-
-const API_BASE = import.meta.env.VITE_API_BASE || '/api/v1'
-
-interface HealthStatus {
-  status: string
-  app: string
-  version: string
-  environment: string
-}
+import type { Session, SessionConfig, HealthStatus } from './api/types'
+import { fetchHealth, fetchSessions, createSession, closeSession } from './api/client'
 
 function AppContent() {
   const [health, setHealth] = useState<HealthStatus | null>(null)
@@ -21,26 +13,22 @@ function AppContent() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const toast = useToast()
 
-  const fetchHealth = useCallback(async () => {
+  const loadHealth = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE.replace('/api/v1', '')}/health`)
-      if (!res.ok) throw new Error('Health check failed')
-      setHealth(await res.json())
+      setHealth(await fetchHealth())
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to connect to backend')
     }
   }, [])
 
-  const fetchSessions = useCallback(async () => {
+  const loadSessions = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/sessions`)
-      if (res.status === 401) {
+      setSessions(await fetchSessions())
+    } catch (e) {
+      if (e instanceof Error && e.message === 'Authentication required') {
         setSessions([])
         return
       }
-      if (!res.ok) throw new Error('Failed to fetch sessions')
-      setSessions(await res.json())
-    } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to fetch sessions')
     }
   }, [])
@@ -48,47 +36,35 @@ function AppContent() {
   useEffect(() => {
     const init = async () => {
       setLoading(true)
-      await Promise.all([fetchHealth(), fetchSessions()])
+      await Promise.all([loadHealth(), loadSessions()])
       setLoading(false)
     }
     init()
 
-    const interval = setInterval(fetchSessions, 5000)
+    const interval = setInterval(loadSessions, 5000)
     return () => clearInterval(interval)
-  }, [fetchHealth, fetchSessions])
+  }, [loadHealth, loadSessions])
 
   const handleCreateSession = async (config: SessionConfig) => {
     try {
-      const res = await fetch(`${API_BASE}/sessions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ config }),
-      })
-      if (res.status === 401) {
+      const session = await createSession(config)
+      toast.success(`Session ${session.id.slice(0, 8)} created`)
+      setShowCreateModal(false)
+      await loadSessions()
+    } catch (e) {
+      if (e instanceof Error && e.message === 'Authentication required') {
         toast.error('Authentication required. Please configure OIDC or enable demo mode.')
         return
       }
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.detail || 'Failed to create session')
-      }
-      const session = await res.json()
-      toast.success(`Session ${session.id.slice(0, 8)} created`)
-      setShowCreateModal(false)
-      await fetchSessions()
-    } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to create session')
     }
   }
 
   const handleCloseSession = async (sessionId: string) => {
     try {
-      const res = await fetch(`${API_BASE}/sessions/${sessionId}`, {
-        method: 'DELETE',
-      })
-      if (!res.ok) throw new Error('Failed to close session')
+      await closeSession(sessionId)
       toast.success('Session closed')
-      await fetchSessions()
+      await loadSessions()
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to close session')
     }
@@ -155,7 +131,7 @@ function AppContent() {
               <button
                 className="btn btn-secondary"
                 style={{ marginLeft: 'auto', padding: '0.375rem 0.75rem', fontSize: '0.875rem' }}
-                onClick={() => { setError(null); fetchHealth(); fetchSessions(); }}
+                onClick={() => { setError(null); loadHealth(); loadSessions(); }}
               >
                 Retry
               </button>
@@ -166,7 +142,7 @@ function AppContent() {
         <SessionList
           sessions={sessions}
           onClose={handleCloseSession}
-          onRefresh={fetchSessions}
+          onRefresh={loadSessions}
         />
 
         <CreateSessionModal
