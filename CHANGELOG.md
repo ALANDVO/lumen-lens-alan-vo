@@ -1,8 +1,22 @@
 # Changelog
 
-## 1.2.0 — work-in-progress checkpoint
+## 1.3.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.2.0 — work-in-progress checkpoint
+
+### Added
+- Frontend API client (`frontend/src/api/client.ts`) with typed functions for all session operations
+- Real-time step progress feed with Server-Sent Events (SSE) integration in SessionDetail
+- Step artifacts viewer modal with JSON formatting
+- Session steps export as JSON (session metadata + all step records + artifacts)
+- SessionDetail component with live connection status indicator
+- Refactored App.tsx to use centralized API client
+
+### Changed
+- SessionList.tsx: Enhanced SessionDetail with step feed, SSE, artifacts, export
+- App.tsx: Replaced inline fetch calls with API client functions
 
 ## 1.2.0 — work-in-progress checkpoint
 
