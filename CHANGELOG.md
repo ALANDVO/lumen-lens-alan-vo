@@ -93,3 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Engine integration (Playwright, Appium) for actual test execution
 - OpenSession API on e2e/runner subpath
 - Frontend Session Dashboard with real-time step feed and artifact viewer
+
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)

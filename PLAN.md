@@ -97,3 +97,6 @@ Acceptance:
 
 Implementation: `README.md`, `CHANGELOG.md`, `portfolio.json`, `docs/api.md`, `docs/architecture.md`, `docs/deployment.md`
 
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)
