@@ -248,7 +248,7 @@ export function SessionDetail({ session }: { session: Session }) {
       }
     })
 
-    es.addEventListener('session', (event) => {
+    es.addEventListener('session', (_event) => {
     })
 
     return () => {
