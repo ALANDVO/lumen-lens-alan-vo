@@ -1,8 +1,15 @@
 # Changelog
 
-## 1.3.0 — work-in-progress checkpoint
+## 1.4.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.3.1 — work-in-progress checkpoint
+
+### Fixed
+- Fixed TypeScript compilation error in SessionList.tsx: unused `event` parameter in SSE session event listener
+
+## 1.3.0 — work-in-progress checkpoint
 
 ## 1.2.0 — work-in-progress checkpoint
 
