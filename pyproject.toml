@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lumen-lens"
-version = "1.0.0"
+version = "1.5.0"
 description = "Lumen Lens — Next-generation e2e testing framework for web and mobile apps"
 readme = "README.md"
 license = {text = "MIT"}
