@@ -27,7 +27,7 @@ describe('DashboardPage', () => {
     })
   })
 
-  it('renders dashboard and shows session list', async () => {
+  it('renders dashboard and shows empty session list', async () => {
     render(<DashboardPage />)
 
     // Wait for loading to finish (health and sessions requests)
@@ -36,7 +36,8 @@ describe('DashboardPage', () => {
       expect(screen.getByText(/Lumen Lens/)).toBeInTheDocument()
     })
 
-    // After loading, there should be a "Sessions (0)" heading
-    expect(screen.getByRole('heading', { name: /Sessions/ })).toBeInTheDocument()
+    // After loading, there should be an empty state message
+    expect(screen.getByRole('heading', { name: /Lumen Lens/ })).toBeInTheDocument()
+    expect(screen.getByText(/No sessions yet/)).toBeInTheDocument()
   })
 })
