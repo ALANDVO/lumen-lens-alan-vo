@@ -94,7 +94,7 @@ function Dashboard() {
         gap: '1rem',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight:  eigent:700, letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
             Lumen Lens
           </h1>
           {health && (
