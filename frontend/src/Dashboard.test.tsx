@@ -20,14 +20,18 @@ describe('DashboardPage', () => {
         environment: 'test',
       }),
     })
-    // Mock sessions endpoint (/api/v1/sessions)
+    // Mock sessions endpoint (/api/v1/sessions) - return sessions with mix of statuses
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve([]),
+      json: () => Promise.resolve([
+        { id: 'session-1', status: 'running', config: { cwd: '/tmp', target: 'web' } as any, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: 'session-2', status: 'initializing', config: { cwd: '/home', target: 'android' } as any, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: 'session-3', status: 'completed', config: { cwd: '/var', target: 'ios' } as any, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      ]),
     })
   })
 
-  it('renders dashboard and shows empty session list', async () => {
+  it('renders dashboard with sessions and active count', async () => {
     render(<DashboardPage />)
 
     // Wait for loading to finish (health and sessions requests)
@@ -36,8 +40,24 @@ describe('DashboardPage', () => {
       expect(screen.getByText(/Lumen Lens/)).toBeInTheDocument()
     })
 
-    // After loading, there should be an empty state message
-    expect(screen.getByRole('heading', { name: /Lumen Lens/ })).toBeInTheDocument()
-    expect(screen.getByText(/No sessions yet/)).toBeInTheDocument()
+    // Should show active sessions badge with count (2 active: running + initializing)
+    const activeBadge = screen.getByText(/2 active/)
+    expect(activeBadge).toBeInTheDocument()
+    
+    // Should NOT show "No sessions yet" since we have sessions
+    // The text may be broken up, so check that the sessions table is present instead
+    expect(screen.getByRole('table')).toBeInTheDocument()
+  })
+
+  it('displays active sessions count badge correctly', async () => {
+    render(<DashboardPage />)
+
+    // Wait for loading to finish (health and sessions requests)
+    await waitFor(() => {
+      expect(screen.getByText(/Lumen Lens/)).toBeInTheDocument()
+    })
+
+    // Should show active sessions badge with count
+    expect(screen.getByText(/2 active/)).toBeInTheDocument()
   })
 })
