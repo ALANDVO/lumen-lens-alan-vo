@@ -11,6 +11,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [activeSessionsCount, setActiveSessionsCount] = useState(0)
   const toast = useToast()
 
   const loadHealth = useCallback(async () => {
@@ -23,10 +24,17 @@ function Dashboard() {
 
   const loadSessions = useCallback(async () => {
     try {
-      setSessions(await fetchSessions())
+      const allSessions = await fetchSessions()
+      setSessions(allSessions)
+      // Count active sessions (initializing or running)
+      const count = allSessions.filter(
+        (s) => s.status === 'initializing' || s.status === 'running'
+      ).length
+      setActiveSessionsCount(count)
     } catch (e) {
       if (e instanceof Error && e.message === 'Authentication required') {
         setSessions([])
+        setActiveSessionsCount(0)
         return
       }
       setError(e instanceof Error ? e.message : 'Failed to fetch sessions')
@@ -102,6 +110,9 @@ function Dashboard() {
               {health.status} · v{health.version}
             </span>
           )}
+          <span className="badge badge-initializing" style={{ marginLeft: '0.5rem' }}>
+            {activeSessionsCount} active
+          </span>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
